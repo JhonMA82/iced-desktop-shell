@@ -559,6 +559,7 @@ fn app_rs(spec: &ResolvedSpec) -> String {
          \x20       let dialog = container(\n\
          \x20           Column::new()\n\
          \x20               .align_x(Alignment::Center)\n\
+         \x20               .width(Length::Fill)\n\
          \x20               .spacing(tokens::SPACING_SM)\n\
          \x20               .padding(tokens::SPACING_LG)\n\
          \x20               .push(text(\"About \".to_string() + demo::APP_TITLE).size(tokens::FONT_SIZE_LG).color(palette.text_primary))\n\

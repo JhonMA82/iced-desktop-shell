@@ -114,6 +114,7 @@ where
             })
     ]
     .align_x(Alignment::Center)
+    .width(Length::Fill)
     .spacing(tokens::SPACING_SM)
     .padding(tokens::SPACING_LG);
 
