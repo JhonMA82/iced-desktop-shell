@@ -44,6 +44,7 @@ pub fn view<'a, M: 'a>(state: &'a StatusBarState, palette: Palette) -> Element<'
     container(content)
         .height(tokens::STATUSBAR_HEIGHT)
         .width(Length::Fill)
+        .center_y(Length::Fill)
         .style(move |_| iced::widget::container::Style {
             background: Some(palette.status_bar_bg.into()),
             border: iced::border::Border {

@@ -573,7 +573,16 @@ fn app_rs(spec: &ResolvedSpec) -> String {
          \x20                       .on_press(Message::Shell(ShellMessage::CloseAboutDialog)),\n\
          \x20               ),\n\
          \x20       )\n\
-         \x20       .width(380.0);\n\
+         \x20       .width(380.0)\n\
+         \x20       .style(move |_| iced::widget::container::Style {\n\
+         \x20           background: Some(palette.surface.into()),\n\
+         \x20           border: iced::border::Border {\n\
+         \x20               color: palette.border,\n\
+         \x20               width: 1.5,\n\
+         \x20               radius: tokens::RADIUS_MD.into(),\n\
+         \x20           },\n\
+         \x20           ..Default::default()\n\
+         \x20       });\n\
          \n\
          \x20       let overlay = container(dialog)\n\
          \x20           .width(Length::Fill)\n\
