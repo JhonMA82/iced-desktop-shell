@@ -19,4 +19,4 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 [workspace]
-members = [".", "crates/desktop-shell"]
+members = [".", "crates/desktop-shell", "crates/scaffold", "xtask"]

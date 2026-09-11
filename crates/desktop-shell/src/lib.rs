@@ -7,6 +7,7 @@
 //! - Design tokens and Dark/Light theming
 //! - Status bar and Preferences persistence
 
+pub mod activity_bar;
 pub mod bottom_panel;
 pub mod command;
 pub mod dock;
@@ -20,8 +21,10 @@ pub mod ribbon;
 pub mod state;
 pub mod status_bar;
 pub mod theme;
+pub mod toolbar;
 pub mod workspace;
 
+pub use activity_bar::ActivityItem;
 pub use command::{Command, CommandId, CommandRegistry, Shortcut};
 pub use dock::DockLayout;
 pub use layout::render_shell;
@@ -31,3 +34,4 @@ pub use persistence::ShellPreferences;
 pub use state::ShellState;
 pub use status_bar::StatusBarState;
 pub use theme::ThemeMode;
+pub use toolbar::ToolbarItem;

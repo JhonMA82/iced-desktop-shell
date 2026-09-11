@@ -102,6 +102,19 @@ cargo check
 
 ---
 
+## Generating New Applications (Scaffolding)
+
+This repository is also a generator for technical desktop apps (see `docs/scaffolding-direction.md` for the full direction). One core, presets as data plus composition:
+
+```bash
+cargo xtask generate printnc-config --layout technical-ribbon
+cargo xtask generate machine-tool --layout technical-ribbon --without inspector
+```
+
+Presets (`cargo xtask list-presets`): `technical-ribbon` (CAD/CAE-style ribbon shell), `ide` (workbench with activity rail), `studio` (workspace-first canvas), `operator` (monitoring/HMI), `minimal` (single-task utility). Capabilities are tuned with `--with` / `--without` (`cargo xtask list-features`); generated projects are standalone crates with normal, editable code.
+
+---
+
 ## License
 
 Dual-licensed under either:

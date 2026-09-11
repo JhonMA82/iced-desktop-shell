@@ -227,3 +227,51 @@ fn dock_set_size_clamps_to_location_minimum() {
     );
     dock.set_size(&PanelId::from("ghost"), 500.0);
 }
+
+#[test]
+fn activity_bar_view_builds_without_panic() {
+    use desktop_shell::activity_bar::{ActivityItem, view as activity_bar_view};
+
+    let mut registry = CommandRegistry::new();
+    registry.register(Command::new(
+        "view.toggle_explorer",
+        "Explorer",
+        "Toggle explorer",
+    ));
+    registry.register(Command::new("view.toggle_theme", "Theme", "Toggle theme"));
+
+    let items = [
+        ActivityItem::new("explorer", "\u{1f4c1}", "view.toggle_explorer"),
+        ActivityItem::new("theme", "\u{1f313}", "view.toggle_theme"),
+    ];
+    assert!(registry.is_enabled(&CommandId::from("view.toggle_explorer")));
+
+    let palette = ThemeMode::Dark.palette();
+    let _selected = activity_bar_view(items.as_slice(), "explorer", palette);
+    let _unknown_active = activity_bar_view(items.as_slice(), "ghost", palette);
+    let no_items: Vec<ActivityItem> = Vec::new();
+    let _empty = activity_bar_view(no_items.as_slice(), "explorer", ThemeMode::Light.palette());
+}
+
+#[test]
+fn toolbar_view_builds_without_panic() {
+    use desktop_shell::toolbar::{ToolbarItem, view as toolbar_view};
+
+    let mut registry = CommandRegistry::new();
+    registry.register(Command::new("app.new", "New", "Create new"));
+    registry.register(Command::new("app.save", "Save", "Save all"));
+
+    let items = [
+        ToolbarItem::new("new", "app.new")
+            .with_label("New")
+            .with_icon("\u{1f4c4}"),
+        ToolbarItem::new("save", "app.save").with_label("Save"),
+        ToolbarItem::new("quit", "app.quit"),
+    ];
+    assert!(registry.is_enabled(&CommandId::from("app.new")));
+
+    let palette = ThemeMode::Dark.palette();
+    let _filled = toolbar_view(items.as_slice(), palette);
+    let no_items: Vec<ToolbarItem> = Vec::new();
+    let _empty = toolbar_view(no_items.as_slice(), ThemeMode::Light.palette());
+}

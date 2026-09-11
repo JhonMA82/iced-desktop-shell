@@ -110,3 +110,21 @@ Shortcuts are listened to using `event::listen_with`, allowing inspection of `ic
 - `ShellState::default()` and `AppState::default()` are pure and perform zero disk I/O.
 - Preferences are loaded explicitly during application startup (`AppState::new`).
 - `ShellPreferences` uses `#[serde(default)]` to safely survive missing or newly added JSON fields.
+
+---
+
+## 9. Scaffolding Layer (`crates/scaffold` + `xtask`)
+
+```text
+┌──────────────────────────────────────────────────────┐
+│ xtask generate  │ thin non-interactive CLI (zero deps) │
+├─────────────────┼─────────────────────────────────────┤
+│ crates/scaffold │ Layout/Feature model, validation,   │
+│                 │ fragment-composed renderer          │
+├─────────────────┴─────────────────────────────────────┤
+│ desktop-shell   │ reusable shell (commands, panels,  │
+│                 │ ribbon, theme, activity-bar,toolbar)│
+└──────────────────────────────────────────────────────┘
+```
+
+Presets are data (`Layout::default_features` + `Layout::slots`), not app copies: the renderer composes small string fragments driven by the resolved feature set. Generated apps depend on `desktop-shell` and continue without the generator.

@@ -1,0 +1,13 @@
+[package]
+name = "xtask"
+version = "0.1.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+description = "Project automation tasks for iced-desktop-shell (generate scaffolding, zero external dependencies)"
+
+[[bin]]
+name = "xtask"
+path = "src/main.rs"
+
+[dependencies]
+scaffold = { path = "../crates/scaffold" }

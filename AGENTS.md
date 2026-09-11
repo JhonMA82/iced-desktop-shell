@@ -65,3 +65,24 @@ cargo clippy --all-targets --all-features -- -D warnings
 cargo test
 cargo check
 ```
+
+---
+
+## 6. Scaffolding
+
+`iced-desktop-shell` ships a declarative application generator: one core, presets as data plus composition (no `templates/<preset>/` copies of whole apps).
+
+```bash
+cargo xtask generate my-app --layout technical-ribbon
+cargo xtask generate machine-tool --layout technical-ribbon --without inspector
+cargo xtask generate converter --layout minimal --theme light
+cargo xtask list-presets   # presets with defaults and panel slots (agent-friendly)
+cargo xtask list-features  # valid --with / --without values
+```
+
+- Presets: `technical-ribbon`, `ide`, `studio`, `operator`, `minimal` (kebab names are the CLI contract).
+- Only implemented capabilities are accepted in `--with` (`ribbon`, `menu`, `toolbar`, `activity-bar`, `explorer`, `inspector`, `bottom-panel`, `statusbar`, `persistence`, `theme`); anything else is a clear error.
+- Incoherent combinations are rejected, never generated broken: `--without workspace` fails, `ribbon` requires `technical-ribbon`, `activity-bar` requires `ide`.
+- Generated projects are standalone, compilable crates depending on `desktop-shell` (git URL by default, `--shell-path <dir>` for local verification) plus `iced` only. The output is normal, editable code: `src/main.rs` (runner), `src/app.rs` (State/Message/Update/View), `src/demo.rs` (single-file domain stub), `.scaffold.toml` (informative metadata, not a source of truth).
+- Generator crates `crates/scaffold` (model + validation + render, zero external deps) and `xtask` (thin CLI, zero external deps) must stay dependency-free: hand-rolled arg parsing, TOML emitted as text.
+- Full direction: `docs/scaffolding-direction.md`.
