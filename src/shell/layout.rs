@@ -29,7 +29,7 @@ where
     // 2. Ribbon
     let ribbon = super::ribbon::view::view(
         &shell.ribbon_tabs,
-        shell.active_ribbon_tab,
+        &shell.active_ribbon_tab,
         &shell.commands,
         palette,
     )

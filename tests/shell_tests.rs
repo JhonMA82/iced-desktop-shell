@@ -1,9 +1,15 @@
 //! Integration and unit tests for iced-desktop-shell.
 
+use iced_desktop_shell::app::Message;
+use iced_desktop_shell::app::state::AppState;
+use iced_desktop_shell::app::update::update;
+use iced_desktop_shell::demo::DemoMessage;
 use iced_desktop_shell::demo::{
     APP_NEW, APP_OPEN, APP_QUIT, APP_SAVE, DemoItemId, DemoState, VIEW_TOGGLE_BOTTOM_PANEL,
     VIEW_TOGGLE_EXPLORER, VIEW_TOGGLE_INSPECTOR, register_demo_commands,
 };
+use iced_desktop_shell::shell::ShellMessage;
+use iced_desktop_shell::shell::ShellState;
 use iced_desktop_shell::shell::command::{Command, CommandId, CommandRegistry, Shortcut};
 use iced_desktop_shell::shell::dock::DockLayout;
 use iced_desktop_shell::shell::panel::{PanelId, PanelLocation, PanelState};
@@ -116,4 +122,301 @@ fn test_demo_state_selection() {
         .expect("Component B properties should exist");
     assert_eq!(props.name, "Component B");
     assert_eq!(props.transform_x, 240.0);
+}
+
+// ---------------------------------------------------------------------------
+// Fase 1 — Tarea 1: update() puro (sin I/O) vía API pública.
+// ---------------------------------------------------------------------------
+
+#[test]
+fn select_item_sets_status_and_log() {
+    let mut state = AppState::default();
+    let logs_before = state.demo.logs.len();
+
+    let _ = update(
+        &mut state,
+        Message::Demo(DemoMessage::SelectItem(DemoItemId::ComponentA)),
+    );
+
+    assert_eq!(state.demo.selected_item, Some(DemoItemId::ComponentA));
+    assert!(
+        state
+            .shell
+            .status_bar
+            .center_text
+            .contains(DemoItemId::ComponentA.label())
+    );
+    assert!(state.demo.logs.len() > logs_before);
+}
+
+#[test]
+fn toggle_enabled_flips_and_logs() {
+    let mut state = AppState::default();
+    let before = state
+        .demo
+        .properties
+        .get(&DemoItemId::ComponentA)
+        .expect("Component A properties should exist")
+        .enabled;
+
+    let _ = update(
+        &mut state,
+        Message::Demo(DemoMessage::ToggleEnabled(DemoItemId::ComponentA)),
+    );
+
+    let after = state
+        .demo
+        .properties
+        .get(&DemoItemId::ComponentA)
+        .expect("Component A properties should exist")
+        .enabled;
+    assert_eq!(after, !before);
+    assert!(
+        state
+            .demo
+            .logs
+            .last()
+            .expect("toggle should append a log entry")
+            .contains("enabled")
+    );
+}
+
+#[test]
+fn increment_then_clear_logs() {
+    let mut state = AppState::default();
+    let before_x = state
+        .demo
+        .properties
+        .get(&DemoItemId::ComponentA)
+        .expect("Component A properties should exist")
+        .transform_x;
+
+    let _ = update(
+        &mut state,
+        Message::Demo(DemoMessage::IncrementX(DemoItemId::ComponentA)),
+    );
+    let after_x = state
+        .demo
+        .properties
+        .get(&DemoItemId::ComponentA)
+        .expect("Component A properties should exist")
+        .transform_x;
+    assert_eq!(after_x, before_x + 5.0);
+
+    let _ = update(&mut state, Message::Demo(DemoMessage::ClearLogs));
+    assert!(state.demo.logs.is_empty());
+}
+
+#[test]
+fn execute_new_command() {
+    let mut state = AppState::default();
+
+    let _ = update(
+        &mut state,
+        Message::Shell(ShellMessage::ExecuteCommand(CommandId::from(APP_NEW))),
+    );
+
+    assert_eq!(state.shell.status_bar.left_text, "New project created");
+    assert!(
+        state
+            .demo
+            .logs
+            .iter()
+            .any(|entry| entry.contains("New project"))
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Fase 1 — Tarea 2: throttle + dirty flag de preferencias.
+// ---------------------------------------------------------------------------
+
+#[test]
+fn preferences_request_marks_dirty_without_disk_write_when_throttled() {
+    let mut shell = ShellState::default();
+    assert!(!shell.preferences_dirty);
+    assert!(shell.last_preferences_save.is_none());
+
+    // Saved 1s ago: inside the 2s throttle window, so no disk write happens.
+    shell.last_preferences_save =
+        Some(std::time::Instant::now() - std::time::Duration::from_secs(1));
+    shell.request_save_preferences();
+
+    assert!(shell.preferences_dirty);
+    // A write would have reset the timestamp to ~now; proving it is untouched
+    // proves no write happened.
+    let elapsed = shell
+        .last_preferences_save
+        .expect("timestamp should survive a throttled request")
+        .elapsed();
+    assert!(
+        elapsed >= std::time::Duration::from_secs(1),
+        "throttled request must not rewrite the save timestamp"
+    );
+}
+
+#[test]
+fn preferences_flush_without_dirty_writes_nothing() {
+    let mut shell = ShellState::default();
+    shell.flush_preferences();
+    assert!(!shell.preferences_dirty);
+    assert!(
+        shell.last_preferences_save.is_none(),
+        "flush with clean flag must not touch disk"
+    );
+}
+
+#[test]
+fn preferences_flush_clears_dirty_flag() {
+    // Redirect the OS config dir to a temp location so the forced flush
+    // exercises the real write path without touching user data.
+    let dir = std::env::temp_dir().join(format!("iced-shell-flush-{}", std::process::id()));
+    unsafe { std::env::set_var("XDG_CONFIG_HOME", &dir) };
+
+    let mut shell = ShellState {
+        preferences_dirty: true,
+        ..Default::default()
+    };
+    shell.flush_preferences();
+
+    assert!(!shell.preferences_dirty);
+    assert!(shell.last_preferences_save.is_some());
+
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn preferences_save_to_path_roundtrip() {
+    let prefs = ShellPreferences::default();
+    let path = std::env::temp_dir().join(format!("prefs-{}-roundtrip.json", std::process::id()));
+
+    assert!(prefs.save_to_path(&path));
+    let raw = std::fs::read_to_string(&path).expect("temp prefs should be readable");
+    let back: ShellPreferences = serde_json::from_str(&raw).expect("temp prefs should parse");
+    assert_eq!(back.theme, prefs.theme);
+    assert!(back.panel_visibility.is_empty());
+
+    let _ = std::fs::remove_file(&path);
+}
+
+// ---------------------------------------------------------------------------
+// Fase 1 — Tarea 3: RibbonTabId en vez de índice.
+// ---------------------------------------------------------------------------
+
+#[test]
+fn default_active_ribbon_tab_matches_first_tab() {
+    let state = AppState::default();
+    let first = state
+        .shell
+        .ribbon_tabs
+        .first()
+        .expect("demo should register ribbon tabs");
+    assert_eq!(state.shell.active_ribbon_tab, first.id);
+}
+
+#[test]
+fn select_ribbon_tab_sets_id() {
+    use iced_desktop_shell::shell::ribbon::model::RibbonTabId;
+
+    let mut state = AppState::default();
+    let _ = update(
+        &mut state,
+        Message::Shell(ShellMessage::SelectRibbonTab(RibbonTabId::from("view"))),
+    );
+    assert_eq!(state.shell.active_ribbon_tab, RibbonTabId::from("view"));
+}
+
+#[test]
+fn unknown_ribbon_tab_id_does_not_panic() {
+    use iced_desktop_shell::shell::ribbon::model::RibbonTabId;
+
+    let mut state = AppState::default();
+    let _ = update(
+        &mut state,
+        Message::Shell(ShellMessage::SelectRibbonTab(RibbonTabId::from("missing"))),
+    );
+    assert_eq!(state.shell.active_ribbon_tab.as_str(), "missing");
+
+    // The ribbon view must fall back to the first tab instead of panicking.
+    let palette = state.shell.theme.palette();
+    let _ = iced_desktop_shell::shell::ribbon::view::view(
+        &state.shell.ribbon_tabs,
+        &state.shell.active_ribbon_tab,
+        &state.shell.commands,
+        palette,
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Fase 1 — Tarea 4: clamp de tamaño de paneles.
+// ---------------------------------------------------------------------------
+
+#[test]
+fn dock_register_clamps_undersized_panel() {
+    use iced_desktop_shell::shell::theme::tokens;
+
+    let mut dock = DockLayout::new();
+    dock.register(PanelState::new(
+        PanelId::from("tiny"),
+        "Tiny",
+        PanelLocation::Left,
+        5.0,
+    ));
+
+    let panel = dock
+        .get(&PanelId::from("tiny"))
+        .expect("panel should be registered");
+    assert_eq!(panel.size, tokens::SIDEBAR_MIN_WIDTH);
+}
+
+#[test]
+fn dock_set_size_clamps_to_location_minimum() {
+    use iced_desktop_shell::shell::theme::tokens;
+
+    let mut dock = DockLayout::new();
+    dock.register(PanelState::new(
+        PanelId::from("left"),
+        "Left",
+        PanelLocation::Left,
+        250.0,
+    ));
+    dock.register(PanelState::new(
+        PanelId::from("right"),
+        "Right",
+        PanelLocation::Right,
+        280.0,
+    ));
+    dock.register(PanelState::new(
+        PanelId::from("bottom"),
+        "Bottom",
+        PanelLocation::Bottom,
+        190.0,
+    ));
+
+    dock.set_size(&PanelId::from("left"), 0.0);
+    assert_eq!(
+        dock.get(&PanelId::from("left")).expect("left panel").size,
+        tokens::SIDEBAR_MIN_WIDTH
+    );
+
+    dock.set_size(&PanelId::from("right"), 0.0 - 42.0);
+    assert_eq!(
+        dock.get(&PanelId::from("right")).expect("right panel").size,
+        tokens::INSPECTOR_MIN_WIDTH
+    );
+
+    dock.set_size(&PanelId::from("bottom"), 10.0);
+    assert_eq!(
+        dock.get(&PanelId::from("bottom"))
+            .expect("bottom panel")
+            .size,
+        tokens::BOTTOM_PANEL_MIN_HEIGHT
+    );
+
+    // Sane sizes pass through untouched; unknown ids are ignored, not panics.
+    dock.set_size(&PanelId::from("left"), 400.0);
+    assert_eq!(
+        dock.get(&PanelId::from("left")).expect("left panel").size,
+        400.0
+    );
+    dock.set_size(&PanelId::from("ghost"), 500.0);
 }

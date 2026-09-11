@@ -21,22 +21,23 @@ pub fn update(state: &mut AppState, message: Message) -> Task<Message> {
 fn handle_shell_message(state: &mut AppState, msg: ShellMessage) -> Task<Message> {
     match msg {
         ShellMessage::ExecuteCommand(cmd_id) => execute_command(state, &cmd_id),
-        ShellMessage::SelectRibbonTab(index) => {
-            state.shell.active_ribbon_tab = index;
+        ShellMessage::SelectRibbonTab(tab_id) => {
+            state.shell.active_ribbon_tab = tab_id;
             Task::none()
         }
         ShellMessage::TogglePanel(panel_id) => {
             state.shell.dock.toggle(&panel_id);
-            state.shell.save_preferences();
+            state.shell.request_save_preferences();
             Task::none()
         }
         ShellMessage::SelectBottomTab(tab_name) => {
             state.shell.bottom_panel.active_tab = tab_name;
+            state.shell.request_save_preferences();
             Task::none()
         }
         ShellMessage::ToggleTheme => {
             state.shell.theme = state.shell.theme.toggle();
-            state.shell.save_preferences();
+            state.shell.request_save_preferences();
             let label = state.shell.theme.label();
             state
                 .demo
@@ -142,26 +143,27 @@ fn execute_command(state: &mut AppState, cmd_id: &CommandId) -> Task<Message> {
         }
         demo::APP_QUIT => {
             info!("Quit command: closing application via iced::exit()");
+            state.shell.flush_preferences();
             iced::exit()
         }
         demo::VIEW_TOGGLE_EXPLORER => {
             state.shell.dock.toggle(&demo::PANEL_EXPLORER.into());
-            state.shell.save_preferences();
+            state.shell.request_save_preferences();
             Task::none()
         }
         demo::VIEW_TOGGLE_INSPECTOR => {
             state.shell.dock.toggle(&demo::PANEL_INSPECTOR.into());
-            state.shell.save_preferences();
+            state.shell.request_save_preferences();
             Task::none()
         }
         demo::VIEW_TOGGLE_BOTTOM_PANEL => {
             state.shell.dock.toggle(&demo::PANEL_OUTPUT.into());
-            state.shell.save_preferences();
+            state.shell.request_save_preferences();
             Task::none()
         }
         demo::VIEW_TOGGLE_THEME => {
             state.shell.theme = state.shell.theme.toggle();
-            state.shell.save_preferences();
+            state.shell.request_save_preferences();
             state.demo.add_log(format!(
                 "[Theme] Toggled to {} mode",
                 state.shell.theme.label()

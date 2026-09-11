@@ -3,14 +3,15 @@
 use super::super::command::CommandRegistry;
 use super::super::message::ShellMessage;
 use super::super::theme::{Palette, tokens};
-use super::model::{RibbonGroup, RibbonItem, RibbonTab};
+use super::model::{RibbonGroup, RibbonItem, RibbonTab, RibbonTabId};
 use iced::widget::{Row, Space, button, column, container, row, rule, text};
 use iced::{Alignment, Element, Length};
 
 /// Render the complete ribbon interface.
+/// The active tab is resolved by id; an unknown id falls back to the first tab.
 pub fn view<'a>(
     tabs: &'a [RibbonTab],
-    active_tab_index: usize,
+    active_tab_id: &RibbonTabId,
     commands: &'a CommandRegistry,
     palette: Palette,
 ) -> Element<'a, ShellMessage> {
@@ -22,8 +23,8 @@ pub fn view<'a>(
     }
 
     // 1. Tab bar header
-    let tab_bar = row(tabs.iter().enumerate().map(|(idx, tab)| {
-        let is_active = idx == active_tab_index;
+    let tab_bar = row(tabs.iter().map(|tab| {
+        let is_active = tab.id == *active_tab_id;
         button(
             text(&tab.label)
                 .size(tokens::FONT_SIZE_SM)
@@ -34,7 +35,7 @@ pub fn view<'a>(
                 }),
         )
         .padding([tokens::SPACING_XS, tokens::SPACING_MD])
-        .on_press(ShellMessage::SelectRibbonTab(idx))
+        .on_press(ShellMessage::SelectRibbonTab(tab.id.clone()))
         .style(move |_theme, status| {
             let bg = if is_active {
                 palette.surface
@@ -65,35 +66,38 @@ pub fn view<'a>(
     .padding([tokens::SPACING_XXS, tokens::SPACING_SM]);
 
     // 2. Active tab groups
-    let groups_content: Element<'a, ShellMessage> =
-        if let Some(active_tab) = tabs.get(active_tab_index) {
-            let mut group_widgets = Vec::new();
+    let groups_content: Element<'a, ShellMessage> = if let Some(active_tab) = tabs
+        .iter()
+        .find(|tab| tab.id == *active_tab_id)
+        .or(tabs.first())
+    {
+        let mut group_widgets = Vec::new();
 
-            for (i, group) in active_tab.groups.iter().enumerate() {
-                if i > 0 {
-                    group_widgets.push(
-                        rule::vertical(1)
-                            .style(move |_| iced::widget::rule::Style {
-                                color: palette.border_subtle,
-                                radius: 0.0.into(),
-                                fill_mode: iced::widget::rule::FillMode::Full,
-                                snap: true,
-                            })
-                            .into(),
-                    );
-                }
-                group_widgets.push(render_group(group, commands, palette));
+        for (i, group) in active_tab.groups.iter().enumerate() {
+            if i > 0 {
+                group_widgets.push(
+                    rule::vertical(1)
+                        .style(move |_| iced::widget::rule::Style {
+                            color: palette.border_subtle,
+                            radius: 0.0.into(),
+                            fill_mode: iced::widget::rule::FillMode::Full,
+                            snap: true,
+                        })
+                        .into(),
+                );
             }
+            group_widgets.push(render_group(group, commands, palette));
+        }
 
-            row(group_widgets)
-                .spacing(tokens::SPACING_SM)
-                .padding([tokens::SPACING_XS, tokens::SPACING_SM])
-                .height(Length::Fill)
-                .align_y(Alignment::Center)
-                .into()
-        } else {
-            Space::new().width(Length::Fill).height(Length::Fill).into()
-        };
+        row(group_widgets)
+            .spacing(tokens::SPACING_SM)
+            .padding([tokens::SPACING_XS, tokens::SPACING_SM])
+            .height(Length::Fill)
+            .align_y(Alignment::Center)
+            .into()
+    } else {
+        Space::new().width(Length::Fill).height(Length::Fill).into()
+    };
 
     container(column![
         tab_bar,

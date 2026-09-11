@@ -40,12 +40,14 @@ The crate targets `iced = "0.14"`. Its widget API differs from older examples â€
 ## 4. Step-by-Step Workflows
 
 ### How to Add a Domain Feature (Application-Specific)
+
 1. Add state in `src/demo/state.rs`.
 2. Add corresponding action in `src/demo/message.rs` (`DemoMessage`).
 3. Handle state mutation in `src/app/update.rs` (`handle_demo_message`).
 4. Update UI in `src/demo/explorer.rs`, `src/demo/workspace.rs`, or `src/demo/inspector.rs`.
 
 ### How to Add an Application Action / Command
+
 1. Define the command ID constant in `src/demo/commands.rs` (e.g. `APP_NEW`, `APP_QUIT`, `VIEW_*`).
 2. Register the command in `register_demo_commands()` in `src/demo/commands.rs` with its label, description, icon, and shortcut.
 3. Handle command execution in `src/app/update.rs` (`execute_command`).
@@ -54,7 +56,9 @@ The crate targets `iced = "0.14"`. Its widget API differs from older examples â€
 ---
 
 ## 5. Verification Checklist
+
 Before submitting changes, ensure:
+
 ```bash
 cargo fmt --check
 cargo clippy --all-targets --all-features -- -D warnings

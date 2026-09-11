@@ -45,6 +45,11 @@ impl Default for AppState {
         // 3. Setup ribbon tabs defined by demo application
         shell.ribbon_tabs = demo::demo_ribbon_tabs();
 
+        // 4. Select the first ribbon tab generically (no hardcoded id).
+        if let Some(first_tab) = shell.ribbon_tabs.first() {
+            shell.active_ribbon_tab = first_tab.id.clone();
+        }
+
         // Note: Default is kept strictly pure (no disk I/O)
         Self {
             shell,
