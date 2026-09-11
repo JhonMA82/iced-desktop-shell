@@ -53,7 +53,7 @@
    pub fn update(state: &mut AppState, message: Message) -> Task<Message>
    ```
 
-   Command execution directly returns `Task<Message>`. For example, `app.quit` returns `iced::exit()`, while standard commands return `Task::none()`.
+   Command execution dispatches through the handler table in `src/app/handlers.rs` (`command_table()`), falling back to `unhandled_command` for unknown ids, and directly returns `Task<Message>`. For example, `app.quit` returns `iced::exit()`, while standard commands return `Task::none()`.
 4. **View**: Declarative view construction rendering the shell frame and slotting domain components into dedicated panel regions:
 
    ```rust

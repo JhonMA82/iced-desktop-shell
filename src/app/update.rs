@@ -1,8 +1,8 @@
 //! Update logic orchestrating state changes across Shell and Demo.
 
+use super::handlers::{command_table, unhandled_command};
 use super::message::Message;
 use super::state::AppState;
-use crate::demo;
 use crate::demo::DemoMessage;
 use crate::shell::ShellMessage;
 use crate::shell::command::CommandId;
@@ -121,65 +121,9 @@ fn handle_demo_message(state: &mut AppState, msg: DemoMessage) -> Task<Message> 
 fn execute_command(state: &mut AppState, cmd_id: &CommandId) -> Task<Message> {
     info!("Executing command: {}", cmd_id);
 
-    match cmd_id.as_str() {
-        demo::APP_NEW => {
-            state.demo.add_log("[Command] App: New project initiated");
-            state.shell.status_bar.left_text = "New project created".to_string();
-            Task::none()
-        }
-        demo::APP_OPEN => {
-            state
-                .demo
-                .add_log("[Command] App: Open project dialog triggered");
-            state.shell.status_bar.left_text = "Open dialog requested".to_string();
-            Task::none()
-        }
-        demo::APP_SAVE => {
-            state
-                .demo
-                .add_log("[Command] App: Project saved successfully");
-            state.shell.status_bar.left_text = "All changes saved".to_string();
-            Task::none()
-        }
-        demo::APP_QUIT => {
-            info!("Quit command: closing application via iced::exit()");
-            state.shell.flush_preferences();
-            iced::exit()
-        }
-        demo::VIEW_TOGGLE_EXPLORER => {
-            state.shell.dock.toggle(&demo::PANEL_EXPLORER.into());
-            state.shell.request_save_preferences();
-            Task::none()
-        }
-        demo::VIEW_TOGGLE_INSPECTOR => {
-            state.shell.dock.toggle(&demo::PANEL_INSPECTOR.into());
-            state.shell.request_save_preferences();
-            Task::none()
-        }
-        demo::VIEW_TOGGLE_BOTTOM_PANEL => {
-            state.shell.dock.toggle(&demo::PANEL_OUTPUT.into());
-            state.shell.request_save_preferences();
-            Task::none()
-        }
-        demo::VIEW_TOGGLE_THEME => {
-            state.shell.theme = state.shell.theme.toggle();
-            state.shell.request_save_preferences();
-            state.demo.add_log(format!(
-                "[Theme] Toggled to {} mode",
-                state.shell.theme.label()
-            ));
-            Task::none()
-        }
-        demo::HELP_ABOUT => {
-            state.shell.show_about_dialog = true;
-            Task::none()
-        }
-        other => {
-            state
-                .demo
-                .add_log(format!("[Command] Unhandled command: {}", other));
-            Task::none()
-        }
+    match command_table().get(cmd_id) {
+        Some(handler) => handler(state, cmd_id),
+        None => unhandled_command(state, cmd_id),
     }
 }
 

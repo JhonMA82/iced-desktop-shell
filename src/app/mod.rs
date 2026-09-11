@@ -3,6 +3,7 @@
 //! Orchestrates the top-level application state, message routing, update cycles,
 //! and view construction between `shell/` (reusable GUI shell) and `demo/` (domain).
 
+pub mod handlers;
 pub mod message;
 pub mod state;
 pub mod update;

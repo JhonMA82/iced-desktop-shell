@@ -50,7 +50,7 @@ The crate targets `iced = "0.14"`. Its widget API differs from older examples â€
 
 1. Define the command ID constant in `src/demo/commands.rs` (e.g. `APP_NEW`, `APP_QUIT`, `VIEW_*`).
 2. Register the command in `register_demo_commands()` in `src/demo/commands.rs` with its label, description, icon, and shortcut.
-3. Handle command execution in `src/app/update.rs` (`execute_command`).
+3. Add the handler function in `src/app/handlers.rs` and register it in `command_table()`.
 4. Expose the command in Ribbon tabs (`demo_ribbon_tabs()` in `src/demo/mod.rs`) or Menu bar (`menu_items` in `src/app/view.rs`).
 
 ---

@@ -420,3 +420,227 @@ fn dock_set_size_clamps_to_location_minimum() {
     );
     dock.set_size(&PanelId::from("ghost"), 500.0);
 }
+
+// ---------------------------------------------------------------------------
+// Fase 2: tabla de handlers de comandos.
+// ---------------------------------------------------------------------------
+
+fn throttled_state() -> AppState {
+    let mut state = AppState::default();
+    // Inside the throttle window: toggles mark dirty without touching disk.
+    state.shell.last_preferences_save = Some(std::time::Instant::now());
+    state
+}
+
+fn panel_visible(state: &AppState, panel: &str) -> bool {
+    state
+        .shell
+        .dock
+        .get(&PanelId::from(panel))
+        .unwrap_or_else(|| panic!("panel {panel} should be registered"))
+        .visible
+}
+
+#[test]
+fn command_table_registers_all_demo_commands() {
+    use iced_desktop_shell::app::handlers::command_table;
+    use iced_desktop_shell::demo::{HELP_ABOUT, VIEW_TOGGLE_THEME};
+
+    let table = command_table();
+    for id in [
+        APP_NEW,
+        APP_OPEN,
+        APP_SAVE,
+        APP_QUIT,
+        VIEW_TOGGLE_EXPLORER,
+        VIEW_TOGGLE_INSPECTOR,
+        VIEW_TOGGLE_BOTTOM_PANEL,
+        VIEW_TOGGLE_THEME,
+        HELP_ABOUT,
+    ] {
+        assert!(
+            table.contains_key(&CommandId::from(id)),
+            "command table should register {id}"
+        );
+    }
+}
+
+#[test]
+fn handler_open_sets_status_and_log() {
+    use iced_desktop_shell::demo::APP_OPEN;
+
+    let mut state = AppState::default();
+    let _ = update(
+        &mut state,
+        Message::Shell(ShellMessage::ExecuteCommand(CommandId::from(APP_OPEN))),
+    );
+
+    assert_eq!(state.shell.status_bar.left_text, "Open dialog requested");
+    assert!(
+        state
+            .demo
+            .logs
+            .iter()
+            .any(|entry| entry.contains("Open project"))
+    );
+}
+
+#[test]
+fn handler_save_sets_status_and_log() {
+    use iced_desktop_shell::demo::APP_SAVE;
+
+    let mut state = AppState::default();
+    let _ = update(
+        &mut state,
+        Message::Shell(ShellMessage::ExecuteCommand(CommandId::from(APP_SAVE))),
+    );
+
+    assert_eq!(state.shell.status_bar.left_text, "All changes saved");
+    assert!(
+        state
+            .demo
+            .logs
+            .iter()
+            .any(|entry| entry.contains("Project saved"))
+    );
+}
+
+#[test]
+fn handler_toggle_explorer_flips_visibility_and_marks_dirty() {
+    use iced_desktop_shell::demo::PANEL_EXPLORER;
+
+    let mut state = throttled_state();
+    let before = panel_visible(&state, PANEL_EXPLORER);
+
+    let _ = update(
+        &mut state,
+        Message::Shell(ShellMessage::ExecuteCommand(CommandId::from(
+            VIEW_TOGGLE_EXPLORER,
+        ))),
+    );
+
+    assert_eq!(panel_visible(&state, PANEL_EXPLORER), !before);
+    assert!(state.shell.preferences_dirty);
+}
+
+#[test]
+fn handler_toggle_inspector_flips_visibility_and_marks_dirty() {
+    use iced_desktop_shell::demo::PANEL_INSPECTOR;
+
+    let mut state = throttled_state();
+    let before = panel_visible(&state, PANEL_INSPECTOR);
+
+    let _ = update(
+        &mut state,
+        Message::Shell(ShellMessage::ExecuteCommand(CommandId::from(
+            VIEW_TOGGLE_INSPECTOR,
+        ))),
+    );
+
+    assert_eq!(panel_visible(&state, PANEL_INSPECTOR), !before);
+    assert!(state.shell.preferences_dirty);
+}
+
+#[test]
+fn handler_toggle_bottom_panel_flips_visibility_and_marks_dirty() {
+    use iced_desktop_shell::demo::{PANEL_OUTPUT, VIEW_TOGGLE_BOTTOM_PANEL};
+
+    let mut state = throttled_state();
+    let before = panel_visible(&state, PANEL_OUTPUT);
+
+    let _ = update(
+        &mut state,
+        Message::Shell(ShellMessage::ExecuteCommand(CommandId::from(
+            VIEW_TOGGLE_BOTTOM_PANEL,
+        ))),
+    );
+
+    assert_eq!(panel_visible(&state, PANEL_OUTPUT), !before);
+    assert!(state.shell.preferences_dirty);
+}
+
+#[test]
+fn handler_toggle_theme_flips_mode_and_logs() {
+    use iced_desktop_shell::demo::VIEW_TOGGLE_THEME;
+
+    let mut state = throttled_state();
+    let before = state.shell.theme;
+
+    let _ = update(
+        &mut state,
+        Message::Shell(ShellMessage::ExecuteCommand(CommandId::from(
+            VIEW_TOGGLE_THEME,
+        ))),
+    );
+
+    assert_eq!(state.shell.theme, before.toggle());
+    assert!(state.shell.preferences_dirty);
+    assert!(
+        state
+            .demo
+            .logs
+            .iter()
+            .any(|entry| entry.contains("Toggled to"))
+    );
+}
+
+#[test]
+fn handler_show_about_opens_dialog() {
+    use iced_desktop_shell::demo::HELP_ABOUT;
+
+    let mut state = AppState::default();
+    assert!(!state.shell.show_about_dialog);
+
+    let _ = update(
+        &mut state,
+        Message::Shell(ShellMessage::ExecuteCommand(CommandId::from(HELP_ABOUT))),
+    );
+
+    assert!(state.shell.show_about_dialog);
+}
+
+#[test]
+fn handler_unknown_command_logs_without_panic() {
+    let mut state = AppState::default();
+    let logs_before = state.demo.logs.len();
+
+    let _ = update(
+        &mut state,
+        Message::Shell(ShellMessage::ExecuteCommand(CommandId::from(
+            "app.does_not_exist",
+        ))),
+    );
+
+    assert!(state.demo.logs.len() > logs_before);
+    assert!(
+        state
+            .demo
+            .logs
+            .last()
+            .expect("unknown command should append a log entry")
+            .contains("Unhandled command")
+    );
+}
+
+#[test]
+fn handler_table_dispatch_matches_direct_call() {
+    use iced_desktop_shell::app::handlers::command_table;
+    use iced_desktop_shell::demo::APP_NEW;
+
+    let table = command_table();
+    let handler = table
+        .get(&CommandId::from(APP_NEW))
+        .expect("app.new should be registered");
+
+    let mut state = AppState::default();
+    let _ = handler(&mut state, &CommandId::from(APP_NEW));
+
+    assert_eq!(state.shell.status_bar.left_text, "New project created");
+    assert!(
+        state
+            .demo
+            .logs
+            .iter()
+            .any(|entry| entry.contains("New project"))
+    );
+}
