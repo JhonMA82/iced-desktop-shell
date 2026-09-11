@@ -14,7 +14,10 @@ fn main() -> iced::Result {
         .with_target(false)
         .init();
 
-    info!("Starting iced-desktop-shell v{}...", env!("CARGO_PKG_VERSION"));
+    info!(
+        "Starting iced-desktop-shell v{}...",
+        env!("CARGO_PKG_VERSION")
+    );
 
     iced::application(AppState::new, update, view)
         .title("iced-desktop-shell")
