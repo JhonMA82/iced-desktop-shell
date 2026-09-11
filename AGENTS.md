@@ -23,7 +23,21 @@ Welcome to `iced-desktop-shell`. Please follow these mandatory architectural rul
 
 ---
 
-## 3. Step-by-Step Workflows
+## 3. Iced 0.14 API Constraints (Learned 2026-09)
+
+The crate targets `iced = "0.14"`. Its widget API differs from older examples — do not reintroduce removed helpers:
+
+- **No `horizontal_space` / `horizontal_rule` / `vertical_rule`**: use `Space::new().width(Length::Fill)` for horizontal gaps and `iced::widget::rule::horizontal(n)` / `rule::vertical(n)` for dividers.
+- **`row()` / `column()` helpers require a children iterator** (`row([a, b])`); for incremental builder style use `Row::new()` / `Column::new()` with `.push()`.
+- **`Space::new()` takes zero arguments**: set size via `.width()` / `.height()` builders.
+- **`rule::Style` has no `Default` impl**: construct it with all fields (`color`, `radius`, `fill_mode`, `snap`). `button::Style` and `container::Style` still support `..Default::default()`.
+- **Generic views need `M: Clone`**: converting `Button` into `Element` requires it — keep the bound consolidated in the `where` clause (e.g. `M: From<ShellMessage> + Clone + 'a`) to satisfy `clippy::multiple_bound_locations`.
+- **Padding arrays must be uniform**: `[0, tokens::SPACING_SM]` fails (int vs float) — write `[0.0, tokens::SPACING_SM]`.
+- **Prefer `.as_slice()`** when passing a local array as `&[T]`; other formulations confuse rust-analyzer.
+
+---
+
+## 4. Step-by-Step Workflows
 
 ### How to Add a Domain Feature (Application-Specific)
 1. Add state in `src/demo/state.rs`.
@@ -39,7 +53,7 @@ Welcome to `iced-desktop-shell`. Please follow these mandatory architectural rul
 
 ---
 
-## 4. Verification Checklist
+## 5. Verification Checklist
 Before submitting changes, ensure:
 ```bash
 cargo fmt --check

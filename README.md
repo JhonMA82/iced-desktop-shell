@@ -47,7 +47,7 @@ iced-desktop-shell/
 ├── LICENSE-APACHE              # Apache 2.0 license
 ├── .github/workflows/ci.yml    # CI workflow
 ├── docs/ARCHITECTURE.md        # Technical architecture document
-├── assets/.gitkeep
+├── assets/                     # Static assets (README screenshot)
 ├── tests/shell_tests.rs        # Test suite
 └── src/
     ├── lib.rs                  # Library root exposing app, shell, and demo
@@ -77,11 +77,24 @@ iced-desktop-shell/
 
 ## Getting Started
 
+### Prerequisites
+
+- Rust stable via [rustup](https://rustup.rs/) (the exact toolchain is pinned in `rust-toolchain.toml`).
+- A graphical session (X11 or Wayland) to run the application window.
+
 ### Running the Application
 
 ```bash
 cargo run
 ```
+
+For smoother rendering use `cargo run --release` (slower first build). The first build takes a while because it compiles the Iced GUI stack; subsequent builds are incremental.
+
+### Quick Tour of the Demo
+
+1. Select **Component A** in the Project Explorer (left panel).
+2. Adjust its **X / Y** coordinates and enabled state in the Properties inspector (right panel).
+3. Toggle the theme with **Appearance → Toggle Theme** in the ribbon, or clear the log from the Output panel (bottom).
 
 ### Running Checks and Tests
 
@@ -97,5 +110,6 @@ cargo check
 ## License
 
 Dual-licensed under either:
+
 - **MIT License** ([LICENSE-MIT](LICENSE-MIT))
 - **Apache License, Version 2.0** ([LICENSE-APACHE](LICENSE-APACHE))

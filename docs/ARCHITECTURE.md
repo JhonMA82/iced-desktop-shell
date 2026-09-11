@@ -73,7 +73,7 @@ iced::application(AppState::new, update, view)
 ---
 
 ## 5. Style Compatibility in Iced 0.14
-All widget styles (`container::Style`, `button::Style`, `rule::Style`) are instantiated using `..Default::default()` to guarantee forwards-compatibility with Iced fields such as `snap`, without manually hardcoding internal struct literals.
+`container::Style` and `button::Style` are instantiated using `..Default::default()` for forwards-compatibility. `rule::Style` is the exception: it does **not** implement `Default` in Iced 0.14, so it must be constructed with all fields explicitly (`color`, `radius`, `fill_mode`, `snap`).
 
 ---
 
