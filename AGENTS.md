@@ -65,3 +65,12 @@ cargo clippy --all-targets --all-features -- -D warnings
 cargo test
 cargo check
 ```
+
+---
+
+## 6. Branch & Merge Policy (Standing Rule)
+
+- `main` is stable: it only receives changes proven by green CI.
+- Implement all work on `feature/*` branches cut from `main`.
+- Open a pull request and wait for all status checks (`Code Quality & Linting`, `Test Suite` on ubuntu/windows/macos) to pass before merging.
+- Direct pushes to `main` are blocked by branch protection — never bypass it, not even for docs or one-liners.
