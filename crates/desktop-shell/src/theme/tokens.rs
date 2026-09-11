@@ -22,7 +22,7 @@ pub const TOOLBAR_HEIGHT: f32 = 32.0;
 pub const MENU_BAR_HEIGHT: f32 = 28.0;
 pub const RIBBON_TAB_HEIGHT: f32 = 28.0;
 pub const RIBBON_HEIGHT: f32 = 96.0;
-pub const STATUSBAR_HEIGHT: f32 = 24.0;
+pub const STATUSBAR_HEIGHT: f32 = 20.0;
 pub const PANEL_HEADER_HEIGHT: f32 = 28.0;
 
 /// Panel sizing tokens
