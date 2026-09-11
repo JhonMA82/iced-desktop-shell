@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use super::message::Message;
 use super::state::AppState;
 use crate::demo;
-use crate::shell::command::CommandId;
+use desktop_shell::command::CommandId;
 use iced::Task;
 use tracing::info;
 

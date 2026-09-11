@@ -17,7 +17,7 @@ pub use message::DemoMessage;
 pub use state::{DemoItemId, DemoState};
 pub use workspace::view as workspace_view;
 
-use crate::shell::ribbon::{RibbonGroup, RibbonItem, RibbonTab};
+use desktop_shell::ribbon::{RibbonGroup, RibbonItem, RibbonTab};
 
 /// Build demo-specific ribbon tabs.
 pub fn demo_ribbon_tabs() -> Vec<RibbonTab> {

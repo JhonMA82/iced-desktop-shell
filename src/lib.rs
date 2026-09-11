@@ -4,4 +4,3 @@
 
 pub mod app;
 pub mod demo;
-pub mod shell;

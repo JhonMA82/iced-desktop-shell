@@ -35,7 +35,7 @@
 
 ## Project Structure
 
-```
+```text
 iced-desktop-shell/
 ├── Cargo.toml                  # Simplified dependencies (iced = "0.14")
 ├── Cargo.lock                  # Lockfile
@@ -48,23 +48,15 @@ iced-desktop-shell/
 ├── .github/workflows/ci.yml    # CI workflow
 ├── docs/ARCHITECTURE.md        # Technical architecture document
 ├── assets/                     # Static assets (README screenshot)
-├── tests/shell_tests.rs        # Test suite
+├── crates/desktop-shell/       # Independent shell crate (commands, dock, ribbon, theme, persistence)
+│   ├── Cargo.toml              # Package `desktop-shell` v0.1.0 (path dependency of the app)
+│   ├── src/                    # Zero domain knowledge: generic shell infrastructure
+│   └── tests/shell_tests.rs    # Shell-only tests
+├── tests/app_tests.rs          # App/demo-level tests
 └── src/
-    ├── lib.rs                  # Library root exposing app, shell, and demo
+    ├── lib.rs                  # Library root exposing app and demo
     ├── main.rs                 # Tracing subscriber & application runner
     ├── app/                    # Application coordination (State, Message, Update, View)
-    ├── shell/                  # Reusable GUI shell infrastructure (Zero domain knowledge)
-    │   ├── command/            # Command, CommandId, CommandRegistry, Shortcut
-    │   ├── ribbon/             # Data-driven Ribbon model and view
-    │   ├── dock/               # Generic DockLayout managing registered panels
-    │   ├── panel/              # Generic PanelId, PanelLocation, PanelState
-    │   ├── workspace/          # Central workspace canvas container
-    │   ├── inspector/          # Generic inspector container
-    │   ├── bottom_panel/       # Output & diagnostics panel with tabs
-    │   ├── status_bar/         # Status bar (Left, Center, Right)
-    │   ├── menu/               # Top menu bar connected to CommandId
-    │   ├── theme/              # Design tokens (tokens.rs) and palettes (style.rs)
-    │   └── persistence/        # Shell preferences persistence (JSON)
     └── demo/                   # Technical demo (Application-level domain)
         ├── commands.rs         # Demo command registration (app.new, app.open, app.quit, etc.)
         ├── explorer.rs         # Project explorer tree panel
@@ -72,6 +64,8 @@ iced-desktop-shell/
         ├── inspector.rs        # Properties editor
         └── state.rs            # Demo state, entities, and diagnostics log
 ```
+
+> The reusable shell lives in the independent `desktop-shell` crate, so the compiler enforces the shell/domain boundary.
 
 ---
 
@@ -81,6 +75,7 @@ iced-desktop-shell/
 
 - Rust stable via [rustup](https://rustup.rs/) (the exact toolchain is pinned in `rust-toolchain.toml`).
 - A graphical session (X11 or Wayland) to run the application window.
+- On Debian/Ubuntu Linux, the system libraries installed by CI: `libxkbcommon-dev libwayland-dev libasound2-dev libfontconfig1-dev`.
 
 ### Running the Application
 

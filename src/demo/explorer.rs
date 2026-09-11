@@ -2,8 +2,8 @@
 
 use super::message::DemoMessage;
 use super::state::{DemoItemId, DemoState};
-use crate::shell::ShellMessage;
-use crate::shell::theme::{Palette, tokens};
+use desktop_shell::ShellMessage;
+use desktop_shell::theme::{Palette, tokens};
 use iced::widget::{Space, button, column, container, row, scrollable, text};
 use iced::{Alignment, Element, Length};
 

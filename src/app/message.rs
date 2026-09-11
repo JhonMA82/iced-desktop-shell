@@ -1,7 +1,7 @@
 //! Root message enum routing actions between Shell and Demo.
 
 use crate::demo::DemoMessage;
-use crate::shell::ShellMessage;
+use desktop_shell::ShellMessage;
 
 /// Unified message type for the entire desktop application.
 #[derive(Debug, Clone)]

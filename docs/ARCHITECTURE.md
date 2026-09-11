@@ -20,7 +20,7 @@
 └────────────────────────────┴────────────────────────────┘
 ```
 
-- **`src/shell/`**: Reusable desktop shell infrastructure. Completely domain-agnostic. Contains zero references to CAD, CNC, or application entities. Can be extracted to a standalone crate (`crates/desktop-shell`) without refactoring.
+- **`crates/desktop-shell/`**: Reusable desktop shell infrastructure. Completely domain-agnostic. Contains zero references to CAD, CNC, or application entities. Extracted as the standalone `desktop-shell` crate so the compiler — not just convention — enforces the shell/domain boundary.
 - **`src/demo/`**: Replaceable technical demo. Registers its own commands (`app.new`, `app.open`, `app.save`, `app.quit`) in `src/demo/commands.rs`, panels (`demo.explorer`, `demo.inspector`, `demo.output`), and ribbon tabs in `src/demo/mod.rs`.
 - **`src/app/`**: Root orchestrator. Connects `ShellState` and `DemoState`, routes messages, and handles command dispatching and task propagation.
 

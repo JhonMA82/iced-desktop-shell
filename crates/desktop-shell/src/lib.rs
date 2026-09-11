@@ -1,4 +1,4 @@
-//! Reusable desktop application shell infrastructure.
+//! Reusable desktop shell infrastructure (`desktop-shell` crate).
 //!
 //! Provides the complete technical desktop UI architecture:
 //! - Menu and data-driven Ribbon

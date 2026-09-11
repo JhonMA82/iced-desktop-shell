@@ -2,7 +2,7 @@
 //!
 //! Separated completely from `shell/`.
 
-use crate::shell::command::{Command, CommandRegistry, Shortcut};
+use desktop_shell::command::{Command, CommandRegistry, Shortcut};
 
 pub const APP_NEW: &str = "app.new";
 pub const APP_OPEN: &str = "app.open";

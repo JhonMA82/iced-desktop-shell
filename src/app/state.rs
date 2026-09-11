@@ -3,9 +3,9 @@
 use super::message::Message;
 use crate::demo;
 use crate::demo::{DemoState, PANEL_EXPLORER, PANEL_INSPECTOR, PANEL_OUTPUT};
-use crate::shell::ShellState;
-use crate::shell::panel::{PanelLocation, PanelState};
-use crate::shell::theme::tokens;
+use desktop_shell::ShellState;
+use desktop_shell::panel::{PanelLocation, PanelState};
+use desktop_shell::theme::tokens;
 use iced::Task;
 
 /// Top-level application state.

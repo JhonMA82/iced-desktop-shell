@@ -25,7 +25,7 @@ impl Default for BottomPanelState {
     }
 }
 
-/// Renders the bottom panel container wrapping domain/demo content.
+/// Renders the bottom panel container wrapping caller-provided content.
 pub fn view<'a, M>(
     state: &'a BottomPanelState,
     content: Element<'a, M>,

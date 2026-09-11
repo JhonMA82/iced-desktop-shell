@@ -7,17 +7,17 @@ Welcome to `iced-desktop-shell`. Please follow these mandatory architectural rul
 ## 1. Architectural Roles
 
 - **`src/app/`**: Application orchestrator. Owns `AppState`, dispatches messages, routes commands to shell and domain handlers, and manages task propagation.
-- **`src/shell/`**: Reusable technical desktop shell infrastructure. Zero domain knowledge. Defines generic commands, dock layout, panels, ribbons, tokens, and preferences. Contains no concrete application commands by default.
+- **`crates/desktop-shell/src/`**: Reusable technical desktop shell infrastructure (independent `desktop-shell` crate). Zero domain knowledge. Defines generic commands, dock layout, panels, ribbons, tokens, and preferences. Contains no concrete application commands by default.
 - **`src/demo/`**: Replaceable technical demo showcasing Explorer, Workspace canvas, Inspector properties, Output diagnostics, and domain-specific commands.
 
 ---
 
 ## 2. Hard Constraints (What Agents Must NEVER Do)
 
-1. **NEVER inject domain or business logic into `src/shell/`**: If a concept relates to CAD, CNC, projects, components, or domain data, it belongs in `demo/` (or the client crate), never in `shell/`.
-2. **NEVER register domain commands inside `src/shell/`**: The shell provides `Command`, `CommandId`, `CommandRegistry`, and `Shortcut`. All concrete commands (`app.*`, `view.*`, `help.*`) must be defined and registered in `src/demo/commands.rs`.
+1. **NEVER inject domain or business logic into `crates/desktop-shell/src/`**: If a concept relates to CAD, CNC, projects, components, or domain data, it belongs in `demo/` (or the client crate), never in `desktop-shell`.
+2. **NEVER register domain commands inside `crates/desktop-shell/src/`**: The shell provides `Command`, `CommandId`, `CommandRegistry`, and `Shortcut`. All concrete commands (`app.*`, `view.*`, `help.*`) must be defined and registered in `src/demo/commands.rs`.
 3. **NEVER trigger side-effects or direct logic from widgets**: Widgets must emit `ShellMessage::ExecuteCommand(CommandId)` or domain messages.
-4. **NEVER disperse magic numbers**: Spacing, radii, heights, and panel dimensions must use constants from `src/shell/theme/tokens.rs`.
+4. **NEVER disperse magic numbers**: Spacing, radii, heights, and panel dimensions must use constants from `crates/desktop-shell/src/theme/tokens.rs`.
 5. **NEVER introduce unjustified dependencies**: Do not add `iced_aw`, plugin runtimes, or scripting engines unless explicitly instructed.
 6. **NEVER use unconditional `.unwrap()` or `.expect()` in application paths**: Handle errors gracefully, log with `tracing`, and fall back to safe defaults.
 

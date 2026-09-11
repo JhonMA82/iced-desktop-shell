@@ -1,7 +1,7 @@
 //! Technical Workspace view for the demo.
 
 use super::state::DemoState;
-use crate::shell::theme::{Palette, tokens};
+use desktop_shell::theme::{Palette, tokens};
 use iced::widget::{Space, column, container, row, text};
 use iced::{Alignment, Element, Length};
 

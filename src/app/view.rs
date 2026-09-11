@@ -4,10 +4,10 @@ use super::message::Message;
 use super::state::AppState;
 use crate::demo;
 use crate::demo::{PANEL_EXPLORER, PANEL_INSPECTOR, PANEL_OUTPUT};
-use crate::shell::menu::MenuItem;
-use crate::shell::panel::{PanelId, PanelLocation};
-use crate::shell::theme::tokens;
-use crate::shell::{ShellMessage, render_shell};
+use desktop_shell::menu::MenuItem;
+use desktop_shell::panel::{PanelId, PanelLocation};
+use desktop_shell::theme::tokens;
+use desktop_shell::{ShellMessage, render_shell};
 use iced::widget::{Column, Space, button, column, row, scrollable, text};
 use iced::{Alignment, Element, Length};
 
@@ -59,7 +59,7 @@ fn resolve_panel_view<'a>(
     state: &'a AppState,
     panel_id: &PanelId,
     size: f32,
-    palette: crate::shell::theme::Palette,
+    palette: desktop_shell::theme::Palette,
 ) -> Option<Element<'a, Message>> {
     match panel_id.as_str() {
         PANEL_EXPLORER => Some(demo::explorer_view(
@@ -70,7 +70,7 @@ fn resolve_panel_view<'a>(
         )),
         PANEL_INSPECTOR => {
             let content = demo::inspector_view(&state.demo, palette);
-            Some(crate::shell::inspector::view(
+            Some(desktop_shell::inspector::view(
                 "Properties",
                 content,
                 palette,
@@ -80,7 +80,7 @@ fn resolve_panel_view<'a>(
         }
         PANEL_OUTPUT => {
             let output_content = render_bottom_content(state, palette);
-            Some(crate::shell::bottom_panel::view(
+            Some(desktop_shell::bottom_panel::view(
                 &state.shell.bottom_panel,
                 output_content,
                 palette,
@@ -94,7 +94,7 @@ fn resolve_panel_view<'a>(
 
 fn render_bottom_content<'a>(
     state: &'a AppState,
-    palette: crate::shell::theme::Palette,
+    palette: desktop_shell::theme::Palette,
 ) -> Element<'a, Message> {
     let mut log_items = Column::new()
         .spacing(tokens::SPACING_XXS)

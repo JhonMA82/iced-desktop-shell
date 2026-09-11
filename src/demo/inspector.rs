@@ -2,7 +2,7 @@
 
 use super::message::DemoMessage;
 use super::state::DemoState;
-use crate::shell::theme::{Palette, tokens};
+use desktop_shell::theme::{Palette, tokens};
 use iced::widget::{button, column, container, row, rule, text};
 use iced::{Alignment, Element};
 
