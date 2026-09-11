@@ -4,6 +4,8 @@
 
 `iced-desktop-shell` is an experimental starter boilerplate designed for building technical, engineering, industrial, and productivity desktop applications in Rust. It explores a classic desktop shell layout using a top menu bar, data-driven ribbon, collapsible panels, properties inspector, diagnostics output, status bar, and centralized commands.
 
+![iced-desktop-shell screenshot](assets/screenshot.png)
+
 ---
 
 ## Architectural Principles & Scope
