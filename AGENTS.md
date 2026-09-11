@@ -1,0 +1,49 @@
+# Guidelines for AI Agents Working on `iced-desktop-shell`
+
+Welcome to `iced-desktop-shell`. Please follow these mandatory architectural rules and workflows when inspecting, modifying, or extending this repository.
+
+---
+
+## 1. Architectural Roles
+
+- **`src/app/`**: Application orchestrator. Owns `AppState`, dispatches messages, routes commands to shell and domain handlers, and manages task propagation.
+- **`src/shell/`**: Reusable technical desktop shell infrastructure. Zero domain knowledge. Defines generic commands, dock layout, panels, ribbons, tokens, and preferences. Contains no concrete application commands by default.
+- **`src/demo/`**: Replaceable technical demo showcasing Explorer, Workspace canvas, Inspector properties, Output diagnostics, and domain-specific commands.
+
+---
+
+## 2. Hard Constraints (What Agents Must NEVER Do)
+
+1. **NEVER inject domain or business logic into `src/shell/`**: If a concept relates to CAD, CNC, projects, components, or domain data, it belongs in `demo/` (or the client crate), never in `shell/`.
+2. **NEVER register domain commands inside `src/shell/`**: The shell provides `Command`, `CommandId`, `CommandRegistry`, and `Shortcut`. All concrete commands (`app.*`, `view.*`, `help.*`) must be defined and registered in `src/demo/commands.rs`.
+3. **NEVER trigger side-effects or direct logic from widgets**: Widgets must emit `ShellMessage::ExecuteCommand(CommandId)` or domain messages.
+4. **NEVER disperse magic numbers**: Spacing, radii, heights, and panel dimensions must use constants from `src/shell/theme/tokens.rs`.
+5. **NEVER introduce unjustified dependencies**: Do not add `iced_aw`, plugin runtimes, or scripting engines unless explicitly instructed.
+6. **NEVER use unconditional `.unwrap()` or `.expect()` in application paths**: Handle errors gracefully, log with `tracing`, and fall back to safe defaults.
+
+---
+
+## 3. Step-by-Step Workflows
+
+### How to Add a Domain Feature (Application-Specific)
+1. Add state in `src/demo/state.rs`.
+2. Add corresponding action in `src/demo/message.rs` (`DemoMessage`).
+3. Handle state mutation in `src/app/update.rs` (`handle_demo_message`).
+4. Update UI in `src/demo/explorer.rs`, `src/demo/workspace.rs`, or `src/demo/inspector.rs`.
+
+### How to Add an Application Action / Command
+1. Define the command ID constant in `src/demo/commands.rs` (e.g. `APP_NEW`, `APP_QUIT`, `VIEW_*`).
+2. Register the command in `register_demo_commands()` in `src/demo/commands.rs` with its label, description, icon, and shortcut.
+3. Handle command execution in `src/app/update.rs` (`execute_command`).
+4. Expose the command in Ribbon tabs (`demo_ribbon_tabs()` in `src/demo/mod.rs`) or Menu bar (`menu_items` in `src/app/view.rs`).
+
+---
+
+## 4. Verification Checklist
+Before submitting changes, ensure:
+```bash
+cargo fmt --check
+cargo clippy --all-targets --all-features -- -D warnings
+cargo test
+cargo check
+```
